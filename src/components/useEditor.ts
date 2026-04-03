@@ -98,7 +98,6 @@ async function loadTools() {
       },
     },
     underline: Underline as unknown as ToolConstructable,
-  
   };
 }
 
@@ -112,13 +111,13 @@ function getSavedData(key: string): OutputData | undefined {
   }
 }
 
-function fileToBase64(file: File): Promise<string>{
+function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 export function useEditor({
@@ -142,40 +141,51 @@ export function useEditor({
   useEffect(() => {
     if (isReady.current) return;
 
-    const holder = document.getElementById(holderId);
-    if (!holder) return;
-
-    holder.innerHTML = ""
-    let destroyed = false
+    let destroyed = false;
 
     const initEditor = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    
+      const holder = document.getElementById(holderId);
+      if (!holder || destroyed) return;
+    
+      holder.innerHTML = "";
+    
       const EditorJS = (await import("@editorjs/editorjs")).default;
       const tools = await loadTools();
-      const savedData = initialData || getSavedData(storageKey);
-
-      if (!destroyed) return
+    
+      // Only use initialData (passed from parent), never load from localStorage for new articles
+      if (destroyed) return;
+    
       const editor = new EditorJS({
         holder: holderId,
         tools,
-        data: savedData,
+        data: initialData,
         placeholder,
         onChange: () => {
           handleSave();
         },
       });
-
+    
       await editor.isReady;
+    
+      if (destroyed) {
+        try { editor.destroy(); } catch {}
+        return;
+      }
+    
       editorRef.current = editor;
       isReady.current = true;
     };
-
     initEditor();
 
     return () => {
-      destroyed = true
+      destroyed = true;
       const editor = editorRef.current;
-      if (editor && typeof editor.destroy === "function") {
-        editor.destroy();
+      if (editor) {
+        try {
+          editor.destroy();
+        } catch {}
       }
       editorRef.current = null;
       isReady.current = false;

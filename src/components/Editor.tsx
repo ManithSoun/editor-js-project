@@ -34,6 +34,7 @@ export function Editor({ initialData, onChange, placeholder, onPublish }: FullEd
   const handlePublish = async () => {
     const data = await save();
     if (data && onPublish) {
+      localStorage.removeItem("editorjs-data")
       onPublish(data);
     }
   };

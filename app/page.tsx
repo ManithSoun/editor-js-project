@@ -21,6 +21,7 @@ export default function Home() {
   const [editingId, setEditingId] = useState<string | undefined>();
   const [previewArticle, setPreviewArticle] = useState<Article | undefined>();
   const [initialData, setInitialData] = useState<OutputData | undefined>();
+  const [editorKey, setEditorKey] = useState(0)
 
   useEffect(() => {
     setArticles(getArticles());
@@ -29,6 +30,7 @@ export default function Home() {
   const handleNew = () => {
     setEditingId(undefined);
     setInitialData(undefined);
+    setEditorKey((prev) => prev + 1);
     setView("editor");
   };
 
@@ -37,6 +39,7 @@ export default function Home() {
     if (article) {
       setEditingId(id);
       setInitialData(article.content);
+      setEditorKey((prev) => prev + 1);
       setView("editor");
     }
   };
@@ -91,7 +94,7 @@ export default function Home() {
           {editingId ? "Edit Article" : "New Article"}
         </h1>
         <Editor
-          key={editingId || "new"}
+          key={editorKey}
           initialData={initialData}
           onPublish={handleSave}
         />
